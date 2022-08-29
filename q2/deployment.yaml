@@ -1,0 +1,42 @@
+##
+## Deployment resource 
+## Creates and manages groups of pods, defines images, policies, healthchecks, etc
+##
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 'bitcoin-core-22'
+  namespace: 'default'
+spec:
+  selector:
+    matchLabels:
+      app: 'bitcoin-core-22'
+  # Auto-scaling later once you've established performance baselines 
+  replicas: 6
+  template:
+    metadata:
+      labels:
+        app: 'bitcoin-core-22'
+    spec:
+      containers:
+        - name: 'bitcoin-core-22'
+          image: "00000000000.dkr.ecr.us-east-1.amazonaws.com/bitcoin-core-22:latest"
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8333
+          # There are no doubt better health checking options which should be explored
+          livenessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - ps -e | grep bitcoin-core-22
+          readinessProbe:
+            initialDelaySeconds: 15
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - ps -e | grep bitcoin-core-22
